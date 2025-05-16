@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style/output.css" />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <title>بانک مرکزی ماریا</title>
+  </head>
+  <body>
+    <nav>
+      <div
+        class="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 shadow-lg"
+      >
+        <div
+          class="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap"
+        >
+          <!-- لوگو -->
+          <div class="flex items-center space-x-3 rtl:space-x-reverse">
+            <img
+              class="h-16 w-16 rounded-full border-2 border-white shadow-md transition-transform duration-300 hover:scale-105"
+              src="./img/Logo.jpg"
+              alt="لوگو"
+            />
+            <span class="text-xl font-bold text-gray-800"
+              >بانک مرکزی ماریا</span
+            >
+          </div>
+          <!-- منو -->
+          <div class="w-full mt-4 md:mt-0 md:w-auto">
+            <ul
+              class="flex md:flex-row items-center gap-4 text-md text-gray-800"
+            >
+              <li>
+                <a
+                  href="./public/signup.html "
+                  class="bg-white border border-blue-300 px-4 py-2 rounded-xl shadow-md transition duration-300 hover:bg-blue-100 hover:scale-105 hover:shadow-xl"
+                  >حساب کاربری</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://mariya-shop.onrender.com/"
+                  class="bg-white border border-purple-300 px-4 py-2 rounded-xl shadow-md transition duration-300 hover:bg-purple-100 hover:scale-105 hover:shadow-xl"
+                  >فروشگاه</a
+                >
+              </li>
+              <li>
+                <a
+                  href="./public/token.html"
+                  class="bg-white border border-pink-300 px-4 py-2 rounded-xl shadow-md transition duration-300 hover:bg-pink-100 hover:scale-105 hover:shadow-xl"
+                  >RXO Token</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <hr />
+    <section
+      class="bg-gradient-to-br from-blue-100 via-white-100 to-white-100 py-12"
+    >
+      <div
+        class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-10"
+      >
+        <!-- تصویر توکن -->
+        <div class="flex-shrink-0">
+          <img
+            src="./img/rxotoken.png"
+            alt="توکن ماریا"
+            class="w-60 h-60 object-contain rounded-full border-4 border-purple-300 shadow-xl hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+        <!-- متن توضیح -->
+        <div class <div class="max-w-xl text-right">
+          <h2 class="text-3xl font-extrabold text-gray-800 mb-4">
+            توکن RXO چیست؟
+          </h2>
+          <p class="text-gray-700 text-lg leading-relaxed mb-4">
+            توکن ماریا، یک امتیاز دیجیتالی ویژه است که به برندگان رقابت‌های دوئل
+            استریم یوتیوب ماریا تعلق می‌گیرد. به‌جای اهدای جوایز نقدی یا فیزیکی،
+            کاربران پس از پیروزی در چالش‌ها، این توکن را به‌عنوان پاداش در حساب
+            کاربری خود دریافت می‌کنند.
+            <br /><br />
+            این توکن به‌منظور افزایش تعامل، ایجاد انگیزه، و ساخت یک جامعه وفادار
+            طراحی شده و کاربران می‌توانند آن را در بخش‌های مختلف پلتفرم ماریا
+            استفاده کنند.
+          </p>
+          <ul class="list-disc pr-5 text-gray-800 space-y-2 mb-6">
+            <li>قابل استفاده در فروشگاه اختصاصی ماریا</li>
+            <li>دسترسی به خدمات و رویدادهای ویژه</li>
+            <li>امکان ذخیره برای جوایز بزرگ‌تر</li>
+            <li>نمایانگر عضویت در جامعه خاص و رقابتی ماریا</li>
+          </ul>
+          <a
+            href="./public/token.html"
+            class="inline-block bg-purple-500 text-white px-6 py-3 rounded-xl shadow-md hover:bg-purple-600 transition-all duration-300 text-lg font-semibold"
+            >خرید توکن ماریا</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <section class="container mx-auto px-4 py-10">
+      <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">
+        برترین بازیکنان این هفته
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <!-- جدول توکن -->
+        <div class="bg-white shadow-lg rounded-xl p-6">
+          <h3 class="text-xl font-semibold text-blue-600 mb-4 text-center">
+            بیشترین توکن دریافتی
+          </h3>
+          <table
+            id="top-tokens-table"
+            class="w-full text-sm text-right text-gray-700"
+          >
+            <thead class="bg-blue-100 text-blue-700">
+              <tr>
+                <th class="py-2 px-4">#</th>
+                <th class="py-2 px-4">نام کاربر</th>
+                <th class="py-2 px-4">تعداد توکن</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <!-- جدول کیل -->
+        <div class="bg-white shadow-lg rounded-xl p-6">
+          <h3 class="text-xl font-semibold text-purple-600 mb-4 text-center">
+            بیشترین کیل در مسابقه
+          </h3>
+          <table
+            id="top-kills-table"
+            class="w-full text-sm text-right text-gray-700"
+          >
+            <thead class="bg-purple-100 text-purple-700">
+              <tr>
+                <th class="py-2 px-4">#</th>
+                <th class="py-2 px-4">نام کاربر</th>
+                <th class="py-2 px-4">تعداد کیل</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- برنده دوئل هفته -->
+      <div
+        id="weekly-winner"
+        class="bg-gradient-to-r from-yellow-100 via-yellow-50 to-white border-l-4 border-yellow-400 rounded-xl p-6 shadow-lg text-center"
+      ></div>
+    </section>
+
+    <section class="container mx-auto px-4 py-12 space-y-16">
+      <!-- بخش نظرات کاربران -->
+      <div class="bg-white shadow-lg rounded-xl p-6">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+          نظرات کاربران
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="bg-gray-50 rounded-lg p-4 shadow">
+            <p class="text-gray-700 italic">
+              "توکن ماریا باعث شد کلی هیجان بگیرم برای شرکت توی دوئل‌ها. انگیزم
+              چند برابر شد!"
+            </p>
+            <div class="mt-4 flex items-center gap-2">
+              <img
+                src="https://api.dicebear.com/7.x/thumbs/svg?seed=user1"
+                class="w-10 h-10 rounded-full"
+              />
+              <span class="font-semibold">کاربر: علیGamer</span>
+            </div>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4 shadow">
+            <p class="text-gray-700 italic">
+              "خیلی راحت توکن گرفتم، فقط یه بازی بردم و توکن‌ها خودکار برام
+              اومد!"
+            </p>
+            <div class="mt-4 flex items-center gap-2">
+              <img
+                src="https://api.dicebear.com/7.x/thumbs/svg?seed=user2"
+                class="w-10 h-10 rounded-full"
+              />
+              <span class="font-semibold">کاربر: NimaYT</span>
+            </div>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4 shadow">
+            <p class="text-gray-700 italic">
+              "بهترین جایزه‌ای بود که از یه چالش گرفتم. توکن‌ها واقعاً ارزش
+              دارن!"
+            </p>
+            <div class="mt-4 flex items-center gap-2">
+              <img
+                src="https://api.dicebear.com/7.x/thumbs/svg?seed=user3"
+                class="w-10 h-10 rounded-full"
+              />
+              <span class="font-semibold">کاربر: RXMaster</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- بخش اخبار -->
+      <div
+        id="news-section"
+        class="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 shadow-md"
+      >
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">
+          جدیدترین اخبار و مطالب
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6"></div>
+      </div>
+
+      <!-- بخش تماس با ما / پشتیبانی -->
+      <div class="bg-white shadow-lg rounded-xl p-6">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-4">
+          تماس با ما
+        </h2>
+        <p class="text-center text-gray-600 mb-6">
+          سوالی داری؟ مشکلی داشتی؟ مستقیم با تیم ما در تماس باش.
+        </p>
+        <form class="max-w-xl mx-auto grid gap-4">
+          <input
+            type="text"
+            placeholder="نام شما"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring focus:ring-blue-100"
+          />
+          <textarea
+            placeholder="پیام شما"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 h-32 focus:ring focus:ring-blue-100"
+          ></textarea>
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition"
+          >
+            ارسال پیام
+          </button>
+        </form>
+      </div>
+
+      <!-- بخش سطح کاربران -->
+      <div
+        class="bg-gradient-to-r from-gray-50 to-white rounded-xl p-6 shadow-md"
+      >
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+          سطح کاربران
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <p class="text-xl font-bold text-yellow-600">Bronze</p>
+            <p class="text-sm text-gray-500">زیر 200 توکن</p>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <p class="text-xl font-bold text-gray-600">Silver</p>
+            <p class="text-sm text-gray-500">بین 200 تا 500 توکن</p>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <p class="text-xl font-bold text-yellow-500">Gold</p>
+            <p class="text-sm text-gray-500">بین 500 تا 1000 توکن</p>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-lg p-4">
+            <p class="text-xl font-bold text-purple-600">Legend</p>
+            <p class="text-sm text-gray-500">بیش از 1000 توکن</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="bg-gradient-to-t from-blue-100 to-white py-12 mt-16">
+      <div
+        class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 items-start"
+      >
+        <!-- لوگو و معرفی -->
+        <div class="text-center md:text-right">
+          <div
+            class="flex items-center justify-center md:justify-end mb-4 rtl:space-x-reverse"
+          >
+            <img
+              src="https://yt3.googleusercontent.com/fVFrfFds5nFiY7ESdi5hFcgLRkgppaRK8Pab1EZpQrD9Fx13r224gpY8dQAVlt9j59sxwYgG-Q=s900-c-k-c0x00ffffff-no-rj"
+              alt="لوگو ماریا"
+              class="w-16 h-16 rounded-full border-2 border-white shadow"
+            />
+            <span class="text-2xl font-bold text-gray-800 mr-3"
+              >بانک ماریا</span
+            >
+          </div>
+          <p class="text-gray-600 text-sm leading-relaxed">
+            بانک ماریا، تنها یک پلتفرم نیست؛ ما یک جامعه از رقابت، پاداش و
+            تجربه‌های دیجیتال هستیم. با شرکت در دوئل‌ها و چالش‌های یوتیوب،
+            امتیاز خود را با توکن ماریا دریافت کرده و در دنیای ماریا پیشرفت
+            کنید. اینجا جایی‌ست که سرگرمی، تکنولوژی و پاداش به هم می‌رسند.
+          </p>
+        </div>
+        <!-- لینک‌های مفید -->
+        <div class="text-center">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">
+            لینک‌های مفید
+          </h3>
+          <ul class="space-y-2 text-gray-600 text-sm">
+            <li>
+              <a href="#" class="hover:text-blue-500 transition">صفحه اصلی</a>
+            </li>
+            <li>
+              <a href="#" class="hover:text-blue-500 transition"
+                >فروشگاه ماریا</a
+              >
+            </li>
+            <li>
+              <a href="#" class="hover:text-blue-500 transition"
+                >شرایط استفاده</a
+              >
+            </li>
+            <li>
+              <a href="#" class="hover:text-blue-500 transition">پشتیبانی</a>
+            </li>
+            <li>
+              <a
+                href="./public/admin/login.html"
+                class="hover:text-blue-500 transition"
+                >panel</a
+              >
+            </li>
+          </ul>
+        </div>
+        <!-- شبکه‌های اجتماعی -->
+        <div class="text-center md:text-left">
+          <h3 class="text-lg font-semibold text-gray-700 mb-4">
+            ما را دنبال کنید
+          </h3>
+          <div class="flex justify-center md:justify-start gap-6">
+            <a
+              href="https://www.instagram.com/MariyaRxo"
+              target="_blank"
+              aria-label="Instagram"
+              class="hover:scale-110 transition"
+            >
+              <svg
+                class="w-7 h-7 text-pink-600 hover:text-pink-700"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 2 .3 2.4.5.5.2.9.5 1.3.9.4.4.7.8.9 1.3.2.5.4 1.2.5 2.4.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2-.5 2.4-.2.5-.5.9-.9 1.3-.4.4-.8.7-1.3.9-.5.2-1.2.4-2.4.5-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2-.3-2.4-.5-.5-.2-.9-.5-1.3-.9-.4-.4-.7-.8-.9-1.3-.2-.5-.4-1.2-.5-2.4C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2 .5-2.4.2-.5.5-.9.9-1.3.4-.4.8-.7 1.3-.9.5-.2 1.2-.4 2.4-.5C8.4 2.2 8.8 2.2 12 2.2m0-2.2C8.7 0 8.3 0 7 .1 5.6.1 4.6.3 3.8.6 3 .9 2.3 1.3 1.6 2 .9 2.7.5 3.4.2 4.2 0 5 .1 6 .1 7.4 0 8.7 0 9.1 0 12c0 2.9 0 3.3.1 4.6 0 1.4.2 2.4.5 3.2.3.8.7 1.5 1.4 2.2.7.7 1.4 1.1 2.2 1.4.8.3 1.8.5 3.2.5 1.3.1 1.7.1 4.6.1s3.3 0 4.6-.1c1.4 0 2.4-.2 3.2-.5.8-.3 1.5-.7 2.2-1.4.7-.7 1.1-1.4 1.4-2.2.3-.8.5-1.8.5-3.2.1-1.3.1-1.7.1-4.6s0-3.3-.1-4.6c0-1.4-.2-2.4-.5-3.2-.3-.8-.7-1.5-1.4-2.2C21.7 1.3 21 1 20.2.7c-.8-.3-1.8-.5-3.2-.6C15.3 0 14.9 0 12 0z"
+                />
+                <path
+                  d="M12 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zm0 10.2a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"
+                />
+              </svg>
+            </a>
+            <a
+              href="https://www.youtube.com/@MariyaRxo"
+              target="_blank"
+              aria-label="YouTube"
+              class="hover:scale-110 transition"
+            >
+              <svg
+                class="w-7 h-7 text-red-600 hover:text-red-700"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19.6 3.2H4.4C3 3.2 2 4.2 2 5.6v12.8c0 1.4 1 2.4 2.4 2.4h15.2c1.4 0 2.4-1 2.4-2.4V5.6c0-1.4-1-2.4-2.4-2.4zM10 16V8l6 4-6 4z"
+                />
+              </svg>
+            </a>
+            <a
+              href="https://t.me/MariyaRxo"
+              target="_blank"
+              aria-label="Telegram"
+              class="hover:scale-110 transition"
+            >
+              <svg
+                class="w-7 h-7 text-blue-500 hover:text-blue-600"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M9.6 16.8l-.4 4.4c.6 0 .9-.2 1.3-.6l3.1-3 6.4 4.7c1.2.8 2.1.4 2.4-1.1L24 3.8c.3-1.5-.5-2.1-1.8-1.6L1.2 9.9C-.2 10.5-.1 11.3 1 11.6l5.8 1.8 13.3-8-10.5 10.7z"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // مقداردهی اولیه Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+        authDomain: "rxotoken-27656.firebaseapp.com",
+        projectId: "rxotoken-27656",
+        storageBucket: "rxotoken-27656.appspot.com",
+        messagingSenderId: "784349399123",
+        appId: "1:784349399123:web:abcdef1234567890abcdef1234",
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // لود داده‌های جدول «بیشترین توکن دریافتی»
+      async function loadTopTokens() {
+        const tbody = document.querySelector("#top-tokens-table tbody");
+        tbody.innerHTML =
+          '<tr><td colspan="3" class="text-center p-4">در حال بارگذاری...</td></tr>';
+
+        try {
+          const snapshot = await db
+            .collection("topPlayers")
+            .orderBy("tokens", "desc")
+            .limit(3)
+            .get();
+
+          if (snapshot.empty) {
+            tbody.innerHTML =
+              '<tr><td colspan="3" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = "";
+          let rank = 1;
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            tbody.innerHTML += `
+            <tr class="hover:bg-blue-50">
+              <td class="py-2 px-4">${rank++}</td>
+              <td class="py-2 px-4">${data.name}</td>
+              <td class="py-2 px-4">${data.tokens}</td>
+            </tr>
+          `;
+          });
+        } catch (error) {
+          console.error("خطا در لود داده‌ها:", error);
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="text-center p-4 text-red-500">خطا در بارگذاری</td></tr>';
+        }
+      }
+
+      // لود داده‌های جدول «بیشترین کیل در مسابقه»
+      async function loadTopKills() {
+        const tbody = document.querySelector("#top-kills-table tbody");
+        tbody.innerHTML =
+          '<tr><td colspan="3" class="text-center p-4">در حال بارگذاری...</td></tr>';
+
+        try {
+          const snapshot = await db
+            .collection("topPlayers")
+            .orderBy("total", "desc")
+            .limit(3)
+            .get();
+
+          if (snapshot.empty) {
+            tbody.innerHTML =
+              '<tr><td colspan="3" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = "";
+          let rank = 1;
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            tbody.innerHTML += `
+            <tr class="hover:bg-purple-50">
+              <td class="py-2 px-4">${rank++}</td>
+              <td class="py-2 px-4">${data.name}</td>
+              <td class="py-2 px-4">${data.total}</td>
+            </tr>
+          `;
+          });
+        } catch (error) {
+          console.error("خطا در لود داده‌ها:", error);
+          tbody.innerHTML =
+            '<tr><td colspan="3" class="text-center p-4 text-red-500">خطا در بارگذاری</td></tr>';
+        }
+      }
+
+      // لود داده‌های «برنده دوئل هفته»
+      async function loadWeeklyWinner() {
+        const winnerDiv = document.querySelector("#weekly-winner");
+        winnerDiv.innerHTML =
+          '<p class="text-center p-4">در حال بارگذاری...</p>';
+
+        try {
+          const snapshot = await db
+            .collection("winners")
+            .orderBy("date", "desc")
+            .limit(1)
+            .get();
+
+          if (snapshot.empty) {
+            winnerDiv.innerHTML =
+              '<p class="text-center p-4 text-gray-500">برنده‌ای ثبت نشده است</p>';
+            return;
+          }
+
+          const doc = snapshot.docs[0];
+          const data = doc.data();
+          winnerDiv.innerHTML = `
+          <h3 class="text-2xl font-bold text-yellow-600 mb-3">برنده دوئل هفته</h3>
+          <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=${data.name}" alt="Winner Avatar" class="w-24 h-24 rounded-full shadow-md border-2 border-yellow-300">
+            <div>
+              <p class="text-lg font-semibold text-gray-700">کاربر: <span class="text-yellow-700">${data.name}</span></p>
+              <p class="text-gray-600">امتیاز کل: <span class="font-bold">${data.tokens}</span> | توضیحات: <span class="font-bold">${data.description}</span></p>
+              <p class="text-sm text-gray-500 mt-1">برنده دوئل لایو یوتیوب</p>
+            </div>
+          </div>
+        `;
+        } catch (error) {
+          console.error("خطا در لود برنده:", error);
+          winnerDiv.innerHTML =
+            '<p class="text-center p-4 text-red-500">خطا در بارگذاری</p>';
+        }
+      }
+
+      // لود اخبار
+      async function loadNews() {
+        const newsDiv = document.querySelector("#news-section .grid");
+        newsDiv.innerHTML = '<p class="text-center p-4">در حال بارگذاری...</p>';
+
+        try {
+          const snapshot = await db
+            .collection("news")
+            .orderBy("createdAt", "desc") // تغییر از 'date' به 'createdAt'
+            .limit(2)
+            .get();
+
+          if (snapshot.empty) {
+            newsDiv.innerHTML =
+              '<p class="text-center p-4 text-gray-500">خبری وجود ندارد</p>';
+            return;
+          }
+
+          newsDiv.innerHTML = "";
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const shortContent =
+              data.content.length > 100
+                ? data.content.substring(0, 100) + "..."
+                : data.content;
+            newsDiv.innerHTML += `
+        <div class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition">
+          <h3 class="font-bold text-lg text-blue-700">${data.title}</h3>
+          <p class="text-sm text-gray-600 mt-2">${shortContent}</p>
+        </div>
+      `;
+          });
+        } catch (error) {
+          console.error("خطا در لود اخبار:", error);
+          newsDiv.innerHTML =
+            '<p class="text-center p-4 text-red-500">خطا در بارگذاری</p>';
+        }
+      }
+      // لود همه داده‌ها هنگام بارگذاری صفحه
+      window.onload = () => {
+        loadTopTokens();
+        loadTopKills();
+        loadWeeklyWinner();
+        loadNews();
+      };
+    </script>
+  </body>
+</html>

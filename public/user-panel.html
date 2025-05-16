@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پنل کاربری - بانک ماریا</title>
+  <link rel="stylesheet" href="../style/output.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <!-- هدر -->
+  <header class="bg-gradient-to-r from-blue-400 to-purple-500 shadow-lg sticky top-0 z-10">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap">
+      <div class="flex items-center space-x-3 space-x-reverse">
+        <img class="h-12 w-12 rounded-full border-2 border-white shadow-md" src="../img/Logo.jpg" alt="لوگو" />
+        <span class="text-xl font-bold text-white">بانک ماریا</span>
+      </div>
+      <nav class="w-full mt-4 md:mt-0 md:w-auto">
+        <ul class="flex md:flex-row items-center gap-4 text-white">
+          <li><a href="../index.html" class="hover:text-blue-200 transition">صفحه اصلی</a></li>
+          <li><a href="./user.html" class="hover:text-blue-200 transition">فروشگاه</a></li>
+          <li><span id="header-username" class="font-semibold"></span></li>
+          <!-- <li>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition">
+              خروج
+            </button>
+          </li> -->
+        </ul>
+      </nav>
+    </div>
+  </header>
+<br>
+  <!-- بدنه اصلی -->
+  <main class="container mx-auto px-4 py-8 flex-1">
+    <div class="grid gap-8 md:grid-cols-2">
+      <!-- پنل اطلاعات کاربری -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">اطلاعات کاربری</h2>
+        <div class="grid gap-6">
+          <div class="flex items-center gap-4">
+            <i class="fas fa-user text-blue-500 text-xl"></i>
+            <p><span class="font-semibold">نام کاربری:</span> <span id="username" class="text-gray-700"></span></p>
+          </div>
+          <div class="flex items-center gap-4">
+            <i class="fas fa-skull text-red-500 text-xl"></i>
+            <p><span class="font-semibold">تعداد کیل:</span> <span id="kills" class="text-gray-700"></span></p>
+          </div>
+          <div class="flex items-center gap-4">
+            <i class="fas fa-coins text-yellow-500 text-xl"></i>
+            <p><span class="font-semibold">تعداد توکن:</span> <span id="tokens" class="text-gray-700"></span></p>
+          </div>
+          <div class="flex items-center gap-4">
+            <i class="fas fa-trophy text-purple-500 text-xl"></i>
+            <p><span class="font-semibold">سطح:</span> <span id="level" class="text-gray-700"></span></p>
+          </div>
+        </div>
+      </div>
+<br>
+      <!-- بخش ارزش توکن -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">ارزش توکن RXO</h2>
+        <div class="text-center">
+          <p class="text-3xl font-semibold text-green-600" id="token-price">0.00 $</p>
+          <p class="text-sm text-gray-500 mt-2" id="token-change">تغییر روزانه: 0%</p>
+        </div>
+        <div class="mt-6 bg-gray-100 rounded-lg p-4 text-center">
+          <p class="text-gray-600">نمودار ارزش توکن (به‌زودی)</p>
+        </div>
+      </div>
+    </div>
+<br>
+    <!-- بخش تاریخچه فعالیت -->
+    <div class="mt-8 bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">آخرین فعالیت‌ها</h2>
+      <div id="activity-log" class="grid gap-4">
+        <p class="text-center text-gray-500">در حال بارگذاری...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- فوتر -->
+  <footer class="bg-gradient-to-t from-blue-100 to-white py-12">
+    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+      <div class="text-center md:text-right">
+        <div class="flex items-center justify-center md:justify-end mb-4 space-x-3 space-x-reverse">
+          <img src="../img/Logo.jpg" alt="لوگو ماریا" class="w-16 h-16 rounded-full border-2 border-white shadow" />
+          <span class="text-2xl font-bold text-gray-800">بانک ماریا</span>
+        </div>
+        <p class="text-gray-600 text-sm leading-relaxed">
+          بانک ماریا، جامعه‌ای برای رقابت و پاداش. با توکن RXO در چالش‌های یوتیوب شرکت کنید و پیشرفت کنید.
+        </p>
+      </div>
+      <div class="text-center">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">لینک‌های مفید</h3>
+        <ul class="space-y-2 text-gray-600 text-sm">
+          <li><a href="../index.html" class="hover:text-blue-500 transition">صفحه اصلی</a></li>
+          <li><a href="./user.html" class="hover:text-blue-500 transition">فروشگاه</a></li>
+          <li><a href="#" class="hover:text-blue-500 transition">پشتیبانی</a></li>
+        </ul>
+      </div>
+      <div class="text-center md:text-left">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">ما را دنبال کنید</h3>
+        <div class="flex justify-center md:justify-start gap-6">
+          <a href="https://instagram.com" target="_blank" class="hover:scale-110 transition">
+            <i class="fab fa-instagram text-pink-600 text-2xl"></i>
+          </a>
+          <a href="https://youtube.com" target="_blank" class="hover:scale-110 transition">
+            <i class="fab fa-youtube text-red-600 text-2xl"></i>
+          </a>
+          <a href="https://t.me" target="_blank" class="hover:scale-110 transition">
+            <i class="fab fa-telegram text-blue-500 text-2xl"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+      authDomain: "rxotoken-27656.firebaseapp.com",
+      projectId: "rxotoken-27656",
+      storageBucket: "rxotoken-27656.appspot.com",
+      messagingSenderId: "784349399123",
+      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert('خارج شدی');
+        window.location.href = '../index.html';
+        return;
+      }
+
+      try {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          alert('کاربر یافت نشد!');
+          await auth.signOut();
+          window.location.href = '../index.html';
+          return;
+        }
+
+        const data = userDoc.data();
+        document.getElementById('username').textContent = data.username;
+        document.getElementById('header-username').textContent = data.username;
+        document.getElementById('kills').textContent = data.kills;
+        document.getElementById('tokens').textContent = data.tokens;
+        document.getElementById('level').textContent = data.level;
+      } catch (error) {
+        console.error('خطا در بارگذاری اطلاعات:', error);
+        alert('خطا در بارگذاری اطلاعات: ' + error.message);
+      }
+
+      loadTokenPrice();
+      loadActivityLog();
+    });
+
+    async function loadTokenPrice() {
+      try {
+        const tokenDoc = await db.collection('tokenPrice').doc('current').get();
+        if (tokenDoc.exists) {
+          const data = tokenDoc.data();
+          document.getElementById('token-price').textContent = `${data.price.toFixed(2)} $`;
+          document.getElementById('token-change').textContent = `تغییر روزانه: ${data.change}%`;
+          document.getElementById('token-change').className = `text-sm mt-2 ${data.change >= 0 ? 'text-green-500' : 'text-red-500'}`;
+        } else {
+          document.getElementById('token-price').textContent = '0.00 $';
+          document.getElementById('token-change').textContent = 'تغییر روزانه: 0%';
+        }
+      } catch (error) {
+        console.error('خطا در بارگذاری قیمت توکن:', error);
+        document.getElementById('token-price').textContent = 'خطا';
+      }
+    }
+
+    async function loadActivityLog() {
+      const activityLog = document.getElementById('activity-log');
+      activityLog.innerHTML = '<p class="text-center text-gray-500">در حال بارگذاری...</p>';
+
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          activityLog.innerHTML = '<p class="text-center text-gray-500">ابتدا وارد شوید</p>';
+          return;
+        }
+
+        const snapshot = await db.collection('userActivities')
+          .where('userId', '==', user.uid)
+          .orderBy('timestamp', 'desc')
+          .limit(5)
+          .get();
+
+        if (snapshot.empty) {
+          activityLog.innerHTML = '<p class="text-center text-gray-500">فعالیتی ثبت نشده است</p>';
+          return;
+        }
+
+        activityLog.innerHTML = '';
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          activityLog.innerHTML += `
+            <div class="bg-gray-50 rounded-lg p-4 shadow-sm">
+              <p class="text-gray-700">${data.description}</p>
+              <p class="text-sm text-gray-500 mt-1">${new Date(data.timestamp.toDate()).toLocaleString('fa-IR')}</p>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error('خطا در بارگذاری فعالیت‌ها:', error);
+        activityLog.innerHTML = '<p class="text-center text-red-500">به زودی اضافه میشه </p>';
+      }
+    }
+
+    document.getElementById('logout-btn').onclick = async () => {
+      await auth.signOut();
+      window.location.href = './login.html';
+    };
+  </script>
+</body>
+</html>

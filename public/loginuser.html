@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ورود - بانک ماریا</title>
+  <link rel="stylesheet" href="../style/output.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto">
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">ورود</h2>
+      <form id="login-form" class="grid gap-4">
+        <div>
+          <label for="username" class="block text-gray-700 font-semibold mb-1">نام کاربری</label>
+          <input type="text" id="username" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring focus:ring-blue-100" required />
+        </div>
+        <div>
+          <label for="password" class="block text-gray-700 font-semibold mb-1">رمز عبور</label>
+          <input type="password" id="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring focus:ring-blue-100" required />
+        </div>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">ورود</button>
+      </form>
+      <p class="text-center text-gray-600 mt-4">
+        حساب ندارید؟ <a href="./signup.html" class="text-blue-500 hover:underline">ثبت‌نام کنید</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+      authDomain: "rxotoken-27656.firebaseapp.com",
+      projectId: "rxotoken-27656",
+      storageBucket: "rxotoken-27656.appspot.com",
+      messagingSenderId: "784349399123",
+      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.getElementById('login-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      // ساخت ایمیل مصنوعی همانند ثبت نام
+      const email = `${username}@rxotoken.com`;
+
+      try {
+        // ورود با ایمیل و پسورد
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // ذخیره آیدی کاربر برای دسترسی بعدی
+        localStorage.setItem('userId', user.uid);
+
+        alert('ورود با موفقیت انجام شد!');
+        window.location.href = './user-panel.html';
+      } catch (error) {
+        console.error('خطا در ورود:', error);
+        let errorMessage = 'نام کاربری یا رمز عبور اشتباه است.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          errorMessage = 'نام کاربری یا رمز عبور اشتباه است.';
+        } else {
+          errorMessage = error.message;
+        }
+        alert(errorMessage);
+      }
+    };
+  </script>
+</body>
+</html>

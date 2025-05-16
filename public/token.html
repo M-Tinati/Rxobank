@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>درباره توکن RXO | بانک ماریا</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome برای آیکون‌ها -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Particles.js برای افکت ذرات -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <style>
+    /* استایل‌های اضافی */
+    .token-img {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(3deg); }
+    }
+    .token-img:hover {
+      transform: scale(1.1) rotate(5deg);
+      filter: brightness(1.2);
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .timeline-connector {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 2px;
+      background: #8b5cf6;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+    @media (max-width: 768px) {
+      .timeline-connector {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-white min-h-screen font-sans">
+  <!-- سربرگ -->
+  <header class="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 shadow-lg py-4">
+    <div class="container mx-auto px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3 rtl:space-x-reverse">
+        <img src="../img/Logo.jpg" alt="لوگو" class="h-12 w-12 rounded-full border-2 border-white shadow-md">
+        <span class="text-xl font-bold text-gray-800">بانک ماریا</span>
+      </div>
+      <a href="../index.html" class="text-gray-800 hover:text-blue-600 transition">صفحه اصلی</a>
+    </div>
+  </header>
+
+  <!-- بخش اصلی: درباره توکن -->
+  <section class="container mx-auto px-4 py-12 relative">
+    <div id="particles-js" class="absolute inset-0 opacity-50"></div>
+    <div class="flex flex-col md:flex-row items-center gap-10 relative z-10">
+      <!-- تصویر توکن با انیمیشن -->
+      <div class="flex-shrink-0">
+        <img src="../img/rxotoken.png" alt="توکن RXO" class="token-img w-64 h-64 object-contain rounded-full border-4 border-purple-300 shadow-xl">
+      </div>
+      <!-- توضیحات توکن -->
+      <div class="text-right">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-4 fade-in">توکن RXO چیست؟</h1>
+        <p class="text-gray-700 text-lg leading-relaxed mb-6 fade-in">
+          توکن RXO قلب تپنده پلتفرم ماریاست! این توکن دیجیتال به‌عنوان امتیازی ویژه به برندگان چالش‌ها و دوئل‌های استریم یوتیوب ماریا اهدا می‌شود. به‌جای جوایز نقدی یا فیزیکی، RXO به شما امکان می‌دهد در دنیای رقابتی ماریا پیشرفت کنید و از امکانات منحصربه‌فرد پلتفرم بهره‌مند شوید.
+          <br><br>
+          RXO نه‌تنها یک امتیاز، بلکه نمادی از مهارت و تعهد شما در جامعه گیمینگ ماریاست. با جمع‌آوری توکن‌ها، می‌توانید به جوایز اختصاصی، رویدادهای ویژه و تجربه‌های هیجان‌انگیز دسترسی پیدا کنید.
+        </p>
+        <a href="https://t.me/your_channel" target="_blank" class="inline-block bg-purple-600 text-white px-8 py-3 rounded-xl shadow  shadow-md hover:bg-purple-700 hover:scale-105 transition-all duration-300 text-lg font-semibold fade-in">
+          خرید توکن RXO
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- بخش آمار زنده توکن -->
+  <section class="container mx-auto px-4 py-12 text-center bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8 fade-in">آمار توکن RXO</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
+        <i class="fas fa-coins text-3xl text-yellow-500 mb-4"></i>
+        <p class="text-4xl font-bold text-gray-800" id="token-count">1500</p>
+        <p class="text-gray-600">توکن توزیع‌شده</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
+        <i class="fas fa-users text-3xl text-blue-500 mb-4"></i>
+        <p class="text-4xl font-bold text-gray-800" id="user-count">120</p>
+        <p class="text-gray-600">کاربر فعال</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-lg fade-in">
+        <i class="fas fa-dollar-sign text-3xl text-green-500 mb-4"></i>
+        <p class="text-4xl font-bold text-gray-800" id="token-value">1.60</p>
+        <p class="text-gray-600">ارزش توکن (دلار)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- بخش راهنمای استفاده از توکن -->
+  <section class="container mx-auto px-4 py-12 relative">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10 fade-in">چطور از توکن RXO استفاده کنیم؟</h2>
+    <div class="relative md:flex md:gap-6">
+      <div class="timeline-connector hidden md:block"></div>
+      <div class="bg-white p-6 rounded-xl shadow-lg text-center mb-6 md:mb-0 fade-in">
+        <i class="fas fa-gamepad text-4xl text-purple-600 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">1. شرکت در دوئل</h3>
+        <p class="text-gray-600">توی چالش‌های یوتیوب ماریا شرکت کن و بدرخش!</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-lg text-center mb-6 md:mb-0 fade-in">
+        <i class="fas fa-coins text-4xl text-purple-600 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">2. جمع‌آوری توکن</h3>
+        <p class="text-gray-600">با پیروزی توکن RXO به حسابت اضافه می‌شه.</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-lg text-center fade-in">
+        <i class="fas fa-shopping-cart text-4xl text-purple-600 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">3. خرج کردن توکن</h3>
+        <p class="text-gray-600">توکن‌ها رو توی فروشگاه یا رویدادها خرج کن.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- بخش مزایای توکن -->
+  <section class="bg-gradient-to-br from-purple-50 to-white py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center text-gray-800 mb-10 fade-in">چرا توکن RXO؟</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition fade-in">
+          <i class="fas fa-store text-3xl text-purple-600 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">خرید از فروشگاه</h3>
+          <p class="text-gray-600">توکن‌های RXO رو در فروشگاه اختصاصی ماریا خرج کنید و آیتم‌های خاص بگیرید.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition fade-in">
+          <i class="fas fa-trophy text-3xl text-purple-600 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">دسترسی به رویدادها</h3>
+          <p class="text-gray-600">با RXO به دوئل‌ها و چالش‌های انحصاری دسترسی پیدا کنید.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition fade-in">
+          <i class="fas fa-gem text-3xl text-purple-600 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">جوایز بزرگ</h3>
+          <p class="text-gray-600">توکن‌ها رو ذخیره کنید و برای جوایز بزرگ‌تر مثل تجهیزات گیمینگ شانس‌تون رو امتحان کنید.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition fade-in">
+          <i class="fas fa-users text-3xl text-purple-600 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-800 mb-2">عضویت در جامعه</h3>
+          <p class="text-gray-600">با RXO بخشی از جامعه رقابتی و پویای ماریا باشید.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- بخش نظرات کاربران -->
+  <section class="container mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10 fade-in">گیمرها درباره RXO چه می‌گن؟</h2>
+    <div class="relative">
+      <div id="testimonial-slider" class="flex overflow-hidden">
+        <div class="min-w-full bg-white rounded-xl p-6 shadow-lg transition-opacity duration-500">
+          <p class="text-gray-700 italic text-center">"با RXO تونستم آیتم‌های خفن بگیرم و توی دوئل‌ها بترکونم!"</p>
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=user1" class="w-10 h-10 rounded-full">
+            <span class="font-semibold">علیGamer</span>
+          </div>
+        </div>
+        <div class="min-w-full bg-white rounded-xl p-6 shadow-lg transition-opacity duration-500">
+          <p class="text-gray-700 italic text-center">"توکن RXO بهم انگیزه داد بیشتر بازی کنم و جایزه بگیرم!"</p>
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=user2" class="w-10 h-10 rounded-full">
+            <span class="font-semibold">NimaYT</span>
+          </div>
+        </div>
+        <div class="min-w-full bg-white rounded-xl p-6 shadow-lg transition-opacity duration-500">
+          <p class="text-gray-700 italic text-center">"بهترین جایزه‌ای بود که از یه چالش گرفتم. RXO واقعاً ارزش داره!"</p>
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=user3" class="w-10 h-10 rounded-full">
+            <span class="font-semibold">RXMaster</span>
+          </div>
+        </div>
+      </div>
+      <button id="prev-slide" class="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <button id="next-slide" class="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- بخش فراخوان به خرید -->
+  <section class="container mx-auto px-4 py-12 text-center">
+    <h2 class="text-3xl font-bold text-gray-800 mb-4 fade-in">همین حالا توکن RXO خود را تهیه کنید!</h2>
+    <p class="text-gray-600 text-lg mb-6 fade-in">به جمع گیمرهای حرفه‌ای ماریا بپیوندید و با توکن RXO تجربه بازی خود را به سطح بعدی ببرید.</p>
+    <a href="https://t.me/your_channel" target="_blank" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-xl shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-300 text-lg font-semibold fade-in">
+      خرید از طریق تلگرام
+    </a>
+  </section>
+
+  <!-- فوتر -->
+  <footer class="bg-gradient-to-t from-blue-100 to-white py-12">
+    <div class="container mx-auto px-4 text-center">
+      <div class="flex items-center justify-center mb-4">
+        <img src="../img/Logo.jpg" alt="لوگو ماریا" class="w-12 h-12 rounded-full border-2 border-white shadow">
+        <span class="text-xl font-bold text-gray-800 mr-3">بانک ماریا</span>
+      </div>
+      <p class="text-gray-600 text-sm">© 2025 بانک ماریا | تمامی حقوق محفوظ است</p>
+    </div>
+  </footer>
+
+  <!-- اسکریپت‌ها -->
+  <script>
+    // مقداردهی اولیه Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+      authDomain: "rxotoken-27656.firebaseapp.com",
+      projectId: "rxotoken-27656",
+      storageBucket: "rxotoken-27656.appspot.com",
+      messagingSenderId: "784349399123",
+      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // انیمیشن شمارشگر برای آمار
+    function animateCounter(elementId, endValue, duration) {
+      let start = 0;
+      const stepTime = Math.abs(Math.floor(duration / endValue));
+      const element = document.getElementById(elementId);
+      const timer = setInterval(() => {
+        start += 1;
+        element.textContent = start;
+        if (start >= endValue) clearInterval(timer);
+      }, stepTime);
+    }
+
+    // لود آمار از Firestore
+    db.collection('stats').doc('tokenStats').onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        animateCounter('token-count', data.distributedTokens || 1500, 2000);
+        animateCounter('user-count', data.activeUsers || 600, 2000);
+        animateCounter('token-value', data.tokenValue || 12.5, 2000);
+      }
+    });
+
+    // اسلایدر نظرات
+    const slider = document.getElementById('testimonial-slider');
+    const slides = slider.children;
+    let currentSlide = 0;
+
+    function showSlide(index) {
+      Array.from(slides).forEach((slide, i) => {
+        slide.style.display = i === index ? 'block' : 'none';
+      });
+    }
+
+    document.getElementById('next-slide').addEventListener('click', () => {
+      currentSlide = (currentSlide + 1) % slides.length;
+      showSlide(currentSlide);
+    });
+
+    document.getElementById('prev-slide').addEventListener('click', () => {
+      currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+      showSlide(currentSlide);
+    });
+
+    showSlide(currentSlide);
+
+    // انیمیشن fade-in برای المنت‌ها
+    const fadeElements = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.2 });
+
+    fadeElements.forEach(el => observer.observe(el));
+
+    // تنظیم پارتیکل‌ها برای تصویر توکن
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 50 },
+        color: { value: '#8b5cf6' },
+        shape: { type: 'circle' },
+        opacity: { value: 0.5 },
+        size: { value: 3 },
+        move: { speed: 2 }
+      },
+      interactivity: {
+        events: {
+          onhover: { enable: true, mode: 'repulse' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

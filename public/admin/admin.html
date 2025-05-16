@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>پنل مدیریت کامل - Rxotoken</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <header class="bg-gradient-to-r from-blue-400 to-purple-500 p-6 text-white shadow-md">
+    <h1 class="text-3xl font-bold text-center">پنل مدیریت Rxotoken</h1>
+  </header>
+  <main class="flex-1 container mx-auto p-6">
+    <section class="mb-10" id="tabs-root"></section>
+  </main>
+  <footer class="bg-blue-300 text-white p-4 text-center">
+    © 2025 بانک ماریا | تمامی حقوق محفوظ است
+  </footer>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+      authDomain: "rxotoken-27656.firebaseapp.com",
+      projectId: "rxotoken-27656",
+      storageBucket: "rxotoken-27656.appspot.com",
+      messagingSenderId: "784349399123",
+      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        alert('لطفاً به‌عنوان ادمین وارد شوید!');
+        window.location.href = './login.html';
+        return;
+      }
+      if (user.isAnonymous) {
+        console.log('کاربر ناشناس شناسایی شد:', user.uid);
+        auth.signOut().then(() => {
+          alert('ورود ناشناس غیرمجاز است!');
+          window.location.href = './login.html';
+        });
+        return;
+      }
+      if (user.email.toLowerCase() !== "admin@gmail.com") {
+        auth.signOut().then(() => {
+          alert('شما مجاز به دسترسی به پنل ادمین نیستید!');
+          window.location.href = './login.html';
+        });
+        return;
+      }
+      console.log('ادمین تأیید شد:', user.uid, user.email);
+      new Tabs();
+    });
+
+    class Tabs {
+      constructor() {
+        this.collections = [
+          {
+            name: 'اخبار',
+            key: 'news',
+            fields: [
+              { label: 'عنوان', name: 'title', type: 'text' },
+              { label: 'متن', name: 'content', type: 'textarea' },
+            ],
+          },
+          {
+            name: 'برنده دوئل هفته',
+            key: 'winners',
+            fields: [
+              { label: 'نام برنده', name: 'name', type: 'text' },
+              { label: 'تعداد توکن', name: 'tokens', type: 'number' },
+              { label: 'توضیحات', name: 'description', type: 'textarea' },
+            ],
+          },
+          {
+            name: 'بازیکنان برتر',
+            key: 'topPlayers',
+            fields: [
+              { label: 'نام بازیکن', name: 'name', type: 'text' },
+              { label: 'تعداد کل', name: 'total', type: 'number' },
+              { label: 'تعداد توکن', name: 'tokens', type: 'number' },
+            ],
+          },
+          {
+            name: 'کاربران',
+            key: 'users',
+            fields: [
+              { label: 'نام کاربری', name: 'username', type: 'text' },
+              { label: 'تعداد کیل', name: 'kills', type: 'number' },
+              { label: 'تعداد توکن', name: 'tokens', type: 'number' },
+              { label: 'سطح', name: 'level', type: 'select', options: ['Bronze', 'Silver', 'Gold', 'Legend'] },
+            ],
+          },
+          {
+            name: 'ارزش توکن',
+            key: 'tokenPrice',
+            fields: [
+              { label: 'قیمت فعلی (دلار)', name: 'price', type: 'number', step: '0.01' },
+              { label: 'تغییر روزانه (%)', name: 'change', type: 'number', step: '0.1' },
+            ],
+          },
+        ];
+
+        this.activeCollection = this.collections[0].key;
+        this.container = document.createElement('div');
+        this.container.className = 'w-full';
+        this.render();
+      }
+
+      render() {
+        this.container.innerHTML = `
+          <div class="flex gap-4 mb-6 overflow-x-auto">
+            ${this.collections
+              .map(
+                (c) => `
+              <button data-key="${c.key}" class="tab-btn py-2 px-6 rounded-md font-semibold transition ${
+                c.key === this.activeCollection
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-100'
+              } whitespace-nowrap">
+                ${c.name}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div id="tab-content"></div>
+        `;
+
+        this.container.querySelectorAll('.tab-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            this.activeCollection = e.target.dataset.key;
+            this.render();
+          });
+        });
+
+        const tabsRoot = document.querySelector('#tabs-root');
+        if (tabsRoot && !tabsRoot.contains(this.container)) {
+          tabsRoot.appendChild(this.container);
+        }
+
+        this.renderTabContent();
+      }
+
+      renderTabContent() {
+        const tabContent = this.container.querySelector('#tab-content');
+        const collection = this.collections.find((c) => c.key === this.activeCollection);
+        if (!collection) return;
+
+        tabContent.innerHTML = `
+          <form id="form-${collection.key}" class="bg-white p-6 rounded shadow mb-8">
+            <input type="hidden" id="id-${collection.key}" />
+            ${collection.fields
+              .map(({ label, name, type, options, step }) => {
+                if (type === 'textarea') {
+                  return `
+                    <label for="${name}-${collection.key}" class="block font-semibold mb-1">${label}:</label>
+                    <textarea id="${name}-${collection.key}" class="w-full p-2 border rounded mb-4 resize-y" required></textarea>
+                  `;
+                } else if (type === 'select') {
+                  return `
+                    <label for="${name}-${collection.key}" class="block font-semibold mb-1">${label}:</label>
+                    <select id="${name}-${collection.key}" class="w-full p-2 border rounded mb-4" required>
+                      ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                  `;
+                }
+                return `
+                  <label for="${name}-${collection.key}" class="block font-semibold mb-1">${label}:</label>
+                  <input type="${type}" id="${name}-${collection.key}" step="${step || ''}" class="w-full p-2 border rounded mb-4" required />
+                `;
+              })
+              .join('')}
+            <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">
+              ذخیره
+            </button>
+          </form>
+
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300 text-right">
+              <thead>
+                <tr class="bg-blue-100">
+                  ${collection.fields
+                    .map((f) => `<th class="border border-gray-300 p-2">${f.label}</th>`)
+                    .join('')}
+                  <th class="border border-gray-300 p-2">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-${collection.key}"></tbody>
+            </table>
+          </div>
+        `;
+
+        this.loadCollectionData(collection);
+        setTimeout(() => this.setupFormHandler(collection), 0);
+      }
+
+      async loadCollectionData(collection) {
+        const tbody = this.container.querySelector(`#table-body-${collection.key}`);
+        tbody.innerHTML = `<tr><td colspan="${collection.fields.length + 1}" class="text-center p-4">در حال بارگذاری...</td></tr>`;
+
+        try {
+          let snapshot;
+          if (collection.key === 'tokenPrice') {
+            const doc = await db.collection('tokenPrice').doc('current').get();
+            snapshot = doc.exists ? [{ id: doc.id, data: () => doc.data() }] : [];
+          } else {
+            snapshot = await db.collection(collection.key).get();
+          }
+
+          console.log(`داده‌های لودشده برای ${collection.key}:`, snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+          if (snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="${collection.fields.length + 1}" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = '';
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-100';
+
+            tr.innerHTML = collection.fields
+              .map((f) => {
+                let value = data[f.name];
+                if (value === undefined || value === null) value = '-';
+                return `<td class="border border-gray-300 p-2 align-middle">${value}</td>`;
+              })
+              .join('');
+
+            tr.innerHTML += `
+              <td class="border border-gray-300 p-2 text-center space-x-2">
+                <button class="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded edit-btn">ویرایش</button>
+                <button class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded delete-btn">حذف</button>
+              </td>
+            `;
+
+            tbody.appendChild(tr);
+
+            tr.querySelector('.edit-btn').addEventListener('click', () => {
+              this.fillForm(collection, doc.id, data);
+            });
+            tr.querySelector('.delete-btn').addEventListener('click', async () => {
+              if (confirm('آیا از حذف مطمئن هستید؟')) {
+                try {
+                  console.log(`در حال حذف سند ${doc.id} از مجموعه ${collection.key}`);
+                  await db.collection(collection.key).doc(doc.id).delete();
+                  console.log(`سند ${doc.id} با موفقیت حذف شد`);
+                  alert('کاربر با موفقیت حذف شد');
+                  this.loadCollectionData(collection);
+                } catch (error) {
+                  console.error(`خطا در حذف سند ${doc.id}:`, error);
+                  alert(`خطا در حذف: ${error.message}`);
+                }
+              }
+            });
+          });
+        } catch (error) {
+          console.error(`خطا در بارگذاری داده‌ها برای ${collection.key}:`, error);
+          tbody.innerHTML = `<tr><td colspan="${collection.fields.length + 1}" class="text-center p-4 text-red-500">خطا در بارگذاری داده‌ها: ${error.message}</td></tr>`;
+        }
+      }
+
+      fillForm(collection, id, data) {
+        const idInput = document.getElementById(`id-${collection.key}`);
+        if (idInput) idInput.value = id;
+        collection.fields.forEach(({ name }) => {
+          const el = document.getElementById(`${name}-${collection.key}`);
+          if (el) el.value = data[name] || '';
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      setupFormHandler(collection) {
+        const form = document.getElementById(`form-${collection.key}`);
+        if (!form) {
+          console.error(`Form with id form-${collection.key} not found`);
+          return;
+        }
+
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const id = document.getElementById(`id-${collection.key}`).value.trim();
+          const docData = {};
+          collection.fields.forEach(({ name, type }) => {
+            const val = document.getElementById(`${name}-${collection.key}`).value.trim();
+            docData[name] = type === 'number' ? Number(val) : val;
+          });
+
+          try {
+            if (collection.key === 'tokenPrice') {
+              await db.collection('tokenPrice').doc('current').set({
+                ...docData,
+                createdAt: new Date(),
+              });
+            } else if (!id) {
+              await db.collection(collection.key).add({
+                ...docData,
+                createdAt: new Date(),
+              });
+            } else {
+              await db.collection(collection.key).doc(id).update({
+                ...docData,
+                createdAt: new Date(),
+              });
+            }
+            alert('ثبت با موفقیت انجام شد');
+            form.reset();
+            document.getElementById(`id-${collection.key}`).value = '';
+            this.loadCollectionData(collection);
+          } catch (err) {
+            console.error('خطا در ثبت:', err);
+            alert('خطا در ثبت: ' + err.message);
+          }
+        };
+      }
+    }
+  </script>
+</body>
+</html>

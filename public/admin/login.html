@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ورود ادمین - بانک ماریا</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center">
+  <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-sm text-center">
+    <h2 class="text-xl font-bold mb-6">ورود به پنل ادمین</h2>
+    <form id="admin-login-form" class="grid gap-4">
+      <input
+        id="email"
+        type="email"
+        placeholder="ایمیل"
+        class="w-full p-2 mb-3 border rounded"
+        required
+      />
+      <input
+        id="password"
+        type="password"
+        placeholder="رمز عبور"
+        class="w-full p-2 mb-3 border rounded"
+        required
+      />
+      <button
+        type="submit"
+        class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+      >
+        ورود
+      </button>
+      <p id="error" class="text-red-500 mt-3 text-sm hidden"></p>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
+      authDomain: "rxotoken-27656.firebaseapp.com",
+      projectId: "rxotoken-27656",
+      storageBucket: "rxotoken-27656.appspot.com",
+      messagingSenderId: "784349399123",
+      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // تنظیم پایداری احراز هویت به local برای ماندگاری ورود
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+    document.getElementById('admin-login-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('error');
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // چک کردن ایمیل ادمین
+        if (email.toLowerCase() !== "admin@gmail.com") {
+          await auth.signOut();
+          errorMsg.textContent = "شما مجاز به ورود به‌عنوان ادمین نیستید!";
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        // هدایت به پنل ادمین
+        window.location.href = './admin.html';
+      } catch (error) {
+        console.error('خطا در ورود:', error);
+        errorMsg.textContent = 'ورود ناموفق: ایمیل یا رمز عبور اشتباه است.';
+        errorMsg.classList.remove('hidden');
+      }
+    };
+  </script>
+</body>
+</html>

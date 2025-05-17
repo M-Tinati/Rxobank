@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>پنل مدیریت کامل - Rxotoken</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Parse SDK برای Back4App -->
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
   <header class="bg-gradient-to-r from-blue-400 to-purple-500 p-6 text-white shadow-md">
@@ -21,43 +21,22 @@
   </footer>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-      authDomain: "rxotoken-27656.firebaseapp.com",
-      projectId: "rxotoken-27656",
-      storageBucket: "rxotoken-27656.appspot.com",
-      messagingSenderId: "784349399123",
-      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
-    };
+    // مقداردهی اولیه Back4App
+    Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); 
+    Parse.serverURL = 'https://parseapi.back4app.com/';
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const user = Parse.User.current();
+    const isAdmin = user && user.get('email').toLowerCase() === 'admin@gmail.com';
 
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        alert('لطفاً به‌عنوان ادمین وارد شوید!');
+    if (!user) {
+      alert('لطفاً به‌عنوان ادمین وارد شوید!');
+      window.location.href = './login.html';
+    } else if (!isAdmin) {
+      Parse.User.logOut().then(() => {
+        alert('شما مجاز به دسترسی به پنل ادمین نیستید!');
         window.location.href = './login.html';
-        return;
-      }
-      if (user.isAnonymous) {
-        console.log('کاربر ناشناس شناسایی شد:', user.uid);
-        auth.signOut().then(() => {
-          alert('ورود ناشناس غیرمجاز است!');
-          window.location.href = './login.html';
-        });
-        return;
-      }
-      if (user.email.toLowerCase() !== "admin@gmail.com") {
-        auth.signOut().then(() => {
-          alert('شما مجاز به دسترسی به پنل ادمین نیستید!');
-          window.location.href = './login.html';
-        });
-        return;
-      }
-      console.log('ادمین تأیید شد:', user.uid, user.email);
-      new Tabs();
-    });
+      });
+    }
 
     class Tabs {
       constructor() {
@@ -207,24 +186,26 @@
         tbody.innerHTML = `<tr><td colspan="${collection.fields.length + 1}" class="text-center p-4">در حال بارگذاری...</td></tr>`;
 
         try {
-          let snapshot;
+          let results;
           if (collection.key === 'tokenPrice') {
-            const doc = await db.collection('tokenPrice').doc('current').get();
-            snapshot = doc.exists ? [{ id: doc.id, data: () => doc.data() }] : [];
+            const query = new Parse.Query('tokenPrice');
+            query.equalTo('objectId', 'current');
+            results = await query.find();
           } else {
-            snapshot = await db.collection(collection.key).get();
+            const query = new Parse.Query(collection.key);
+            results = await query.find();
           }
 
-          console.log(`داده‌های لودشده برای ${collection.key}:`, snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          console.log(`داده‌های لودشده برای ${collection.key}:`, results.map(obj => ({ id: obj.id, ...obj.toJSON() })));
 
-          if (snapshot.empty) {
+          if (results.length === 0) {
             tbody.innerHTML = `<tr><td colspan="${collection.fields.length + 1}" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>`;
             return;
           }
 
           tbody.innerHTML = '';
-          snapshot.forEach((doc) => {
-            const data = doc.data();
+          results.forEach((obj) => {
+            const data = obj.toJSON();
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-100';
 
@@ -246,18 +227,18 @@
             tbody.appendChild(tr);
 
             tr.querySelector('.edit-btn').addEventListener('click', () => {
-              this.fillForm(collection, doc.id, data);
+              this.fillForm(collection, obj.id, data);
             });
             tr.querySelector('.delete-btn').addEventListener('click', async () => {
               if (confirm('آیا از حذف مطمئن هستید؟')) {
                 try {
-                  console.log(`در حال حذف سند ${doc.id} از مجموعه ${collection.key}`);
-                  await db.collection(collection.key).doc(doc.id).delete();
-                  console.log(`سند ${doc.id} با موفقیت حذف شد`);
+                  console.log(`در حال حذف سند ${obj.id} از مجموعه ${collection.key}`);
+                  await obj.destroy();
+                  console.log(`سند ${obj.id} با موفقیت حذف شد`);
                   alert('کاربر با موفقیت حذف شد');
                   this.loadCollectionData(collection);
                 } catch (error) {
-                  console.error(`خطا در حذف سند ${doc.id}:`, error);
+                  console.error(`خطا در حذف سند ${obj.id}:`, error);
                   alert(`خطا در حذف: ${error.message}`);
                 }
               }
@@ -297,20 +278,35 @@
 
           try {
             if (collection.key === 'tokenPrice') {
-              await db.collection('tokenPrice').doc('current').set({
-                ...docData,
-                createdAt: new Date(),
-              });
-            } else if (!id) {
-              await db.collection(collection.key).add({
-                ...docData,
-                createdAt: new Date(),
-              });
+              const query = new Parse.Query('tokenPrice');
+              query.equalTo('objectId', 'current');
+              const existing = await query.first();
+              if (existing) {
+                existing.set(docData);
+                existing.set('createdAt', new Date());
+                await existing.save();
+              } else {
+                const TokenPrice = Parse.Object.extend('tokenPrice');
+                const newRecord = new TokenPrice();
+                newRecord.set('objectId', 'current');
+                newRecord.set(docData);
+                newRecord.set('createdAt', new Date());
+                await newRecord.save();
+              }
             } else {
-              await db.collection(collection.key).doc(id).update({
-                ...docData,
-                createdAt: new Date(),
-              });
+              const CollectionClass = Parse.Object.extend(collection.key);
+              if (!id) {
+                const newRecord = new CollectionClass();
+                newRecord.set(docData);
+                newRecord.set('createdAt', new Date());
+                await newRecord.save();
+              } else {
+                const query = new Parse.Query(collection.key);
+                const record = await query.get(id);
+                record.set(docData);
+                record.set('createdAt', new Date());
+                await record.save();
+              }
             }
             alert('ثبت با موفقیت انجام شد');
             form.reset();
@@ -322,6 +318,11 @@
           }
         };
       }
+    }
+
+    if (isAdmin) {
+      console.log('ادمین تأیید شد:', user.id, user.get('email'));
+      new Tabs();
     }
   </script>
 </body>

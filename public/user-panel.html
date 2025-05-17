@@ -6,9 +6,8 @@
   <title>پنل کاربری - بانک ماریا</title>
   <link rel="stylesheet" href="../style/output.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Parse SDK برای Back4App -->
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
   <!-- هدر -->
@@ -23,6 +22,7 @@
           <li><a href="../index.html" class="hover:text-blue-200 transition">صفحه اصلی</a></li>
           <li><a href="./user.html" class="hover:text-blue-200 transition">فروشگاه</a></li>
           <li><span id="header-username" class="font-semibold"></span></li>
+          <!-- دکمه خروج (فعلاً غیرفعال شده، در صورت نیاز فعال کن) -->
           <!-- <li>
             <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition">
               خروج
@@ -119,19 +119,13 @@
   </footer>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-      authDomain: "rxotoken-27656.firebaseapp.com",
-      projectId: "rxotoken-27656",
-      storageBucket: "rxotoken-27656.appspot.com",
-      messagingSenderId: "784349399123",
-      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    // مقداردهی اولیه Back4App
+    Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP');
+    Parse.serverURL = 'https://parseapi.back4app.com/';
 
-    auth.onAuthStateChanged(async (user) => {
+    // بررسی وضعیت ورود کاربر
+    (async () => {
+      const user = Parse.User.current();
       if (!user) {
         alert('خارج شدی');
         window.location.href = '../index.html';
@@ -139,15 +133,19 @@
       }
 
       try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (!userDoc.exists) {
+        // لود اطلاعات کاربر از کلاس users
+        const query = new Parse.Query('users');
+        query.equalTo('userId', user.id);
+        const userDoc = await query.first();
+
+        if (!userDoc) {
           alert('کاربر یافت نشد!');
-          await auth.signOut();
+          await Parse.User.logOut();
           window.location.href = '../index.html';
           return;
         }
 
-        const data = userDoc.data();
+        const data = userDoc.toJSON();
         document.getElementById('username').textContent = data.username;
         document.getElementById('header-username').textContent = data.username;
         document.getElementById('kills').textContent = data.kills;
@@ -160,23 +158,21 @@
 
       loadTokenPrice();
       loadActivityLog();
-    });
+    })();
 
     async function loadTokenPrice() {
       try {
-        const tokenDoc = await db.collection('tokenPrice').doc('current').get();
-        if (tokenDoc.exists) {
-          const data = tokenDoc.data();
-          document.getElementById('token-price').textContent = `${data.price.toFixed(2)} $`;
-          document.getElementById('token-change').textContent = `تغییر روزانه: ${data.change}%`;
-          document.getElementById('token-change').className = `text-sm mt-2 ${data.change >= 0 ? 'text-green-500' : 'text-red-500'}`;
-        } else {
-          document.getElementById('token-price').textContent = '0.00 $';
-          document.getElementById('token-change').textContent = 'تغییر روزانه: 0%';
-        }
+        const query = new Parse.Query('tokenPrice');
+        const tokenDoc = await query.get('current');
+
+        const data = tokenDoc.toJSON();
+        document.getElementById('token-price').textContent = `${data.price.toFixed(2)} $`;
+        document.getElementById('token-change').textContent = `تغییر روزانه: ${data.change}%`;
+        document.getElementById('token-change').className = `text-sm mt-2 ${data.change >= 0 ? 'text-green-500' : 'text-red-500'}`;
       } catch (error) {
         console.error('خطا در بارگذاری قیمت توکن:', error);
-        document.getElementById('token-price').textContent = 'خطا';
+        document.getElementById('token-price').textContent = '0.00 $';
+        document.getElementById('token-change').textContent = 'تغییر روزانه: 0%';
       }
     }
 
@@ -185,30 +181,30 @@
       activityLog.innerHTML = '<p class="text-center text-gray-500">در حال بارگذاری...</p>';
 
       try {
-        const user = auth.currentUser;
+        const user = Parse.User.current();
         if (!user) {
           activityLog.innerHTML = '<p class="text-center text-gray-500">ابتدا وارد شوید</p>';
           return;
         }
 
-        const snapshot = await db.collection('userActivities')
-          .where('userId', '==', user.uid)
-          .orderBy('timestamp', 'desc')
-          .limit(5)
-          .get();
+        const query = new Parse.Query('userActivities');
+        query.equalTo('userId', user.id);
+        query.descending('timestamp');
+        query.limit(5);
+        const snapshot = await query.find();
 
-        if (snapshot.empty) {
+        if (snapshot.length === 0) {
           activityLog.innerHTML = '<p class="text-center text-gray-500">فعالیتی ثبت نشده است</p>';
           return;
         }
 
         activityLog.innerHTML = '';
         snapshot.forEach((doc) => {
-          const data = doc.data();
+          const data = doc.toJSON();
           activityLog.innerHTML += `
             <div class="bg-gray-50 rounded-lg p-4 shadow-sm">
               <p class="text-gray-700">${data.description}</p>
-              <p class="text-sm text-gray-500 mt-1">${new Date(data.timestamp.toDate()).toLocaleString('fa-IR')}</p>
+              <p class="text-sm text-gray-500 mt-1">${new Date(data.timestamp).toLocaleString('fa-IR')}</p>
             </div>
           `;
         });
@@ -218,10 +214,13 @@
       }
     }
 
+    // فعال کردن دکمه خروج (در صورت نیاز)
+    /*
     document.getElementById('logout-btn').onclick = async () => {
-      await auth.signOut();
+      await Parse.User.logOut();
       window.location.href = './login.html';
     };
+    */
   </script>
 </body>
 </html>

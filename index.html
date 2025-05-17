@@ -9,12 +9,13 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <!-- Parse SDK برای Back4App (جایگزین Firebase SDK) -->
+    <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
     <title>بانک مرکزی ماریا</title>
   </head>
   <body>
+    <!-- بخش‌های HTML بدون تغییر باقی می‌مانند -->
     <nav>
       <div
         class="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 shadow-lg"
@@ -80,7 +81,7 @@
           />
         </div>
         <!-- متن توضیح -->
-        <div class <div class="max-w-xl text-right">
+        <div class="max-w-xl text-right">
           <h2 class="text-3xl font-extrabold text-gray-800 mb-4">
             توکن RXO چیست؟
           </h2>
@@ -103,7 +104,7 @@
           <a
             href="./public/token.html"
             class="inline-block bg-purple-500 text-white px-6 py-3 rounded-xl shadow-md hover:bg-purple-600 transition-all duration-300 text-lg font-semibold"
-            >خرید توکن ماریا</a
+            >اطلاعات بیشتر</a
           >
         </div>
       </div>
@@ -123,7 +124,7 @@
             id="top-tokens-table"
             class="w-full text-sm text-right text-gray-700"
           >
-            <thead class="bg-blue-100 text-blue-700">
+            <thead class="bg-blue-100 text -100 text-blue-700">
               <tr>
                 <th class="py-2 px-4">#</th>
                 <th class="py-2 px-4">نام کاربر</th>
@@ -394,17 +395,9 @@
     </footer>
 
     <script>
-      // مقداردهی اولیه Firebase
-      const firebaseConfig = {
-        apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-        authDomain: "rxotoken-27656.firebaseapp.com",
-        projectId: "rxotoken-27656",
-        storageBucket: "rxotoken-27656.appspot.com",
-        messagingSenderId: "784349399123",
-        appId: "1:784349399123:web:abcdef1234567890abcdef1234",
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      // مقداردهی اولیه Back4App (جایگزین Firebase)
+      Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); // کلیدها را از داشبورد Back4App وارد کنید
+      Parse.serverURL = 'https://parseapi.back4app.com/';
 
       // لود داده‌های جدول «بیشترین توکن دریافتی»
       async function loadTopTokens() {
@@ -413,13 +406,12 @@
           '<tr><td colspan="3" class="text-center p-4">در حال بارگذاری...</td></tr>';
 
         try {
-          const snapshot = await db
-            .collection("topPlayers")
-            .orderBy("tokens", "desc")
-            .limit(3)
-            .get();
+          const query = new Parse.Query('topPlayers');
+          query.descending('tokens');
+          query.limit(3);
+          const results = await query.find();
 
-          if (snapshot.empty) {
+          if (results.length === 0) {
             tbody.innerHTML =
               '<tr><td colspan="3" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>';
             return;
@@ -427,15 +419,15 @@
 
           tbody.innerHTML = "";
           let rank = 1;
-          snapshot.forEach((doc) => {
-            const data = doc.data();
+          results.forEach((result) => {
+            const data = result.toJSON();
             tbody.innerHTML += `
-            <tr class="hover:bg-blue-50">
-              <td class="py-2 px-4">${rank++}</td>
-              <td class="py-2 px-4">${data.name}</td>
-              <td class="py-2 px-4">${data.tokens}</td>
-            </tr>
-          `;
+              <tr class="hover:bg-blue-50">
+                <td class="py-2 px-4">${rank++}</td>
+                <td class="py-2 px-4">${data.name}</td>
+                <td class="py-2 px-4">${data.tokens}</td>
+              </tr>
+            `;
           });
         } catch (error) {
           console.error("خطا در لود داده‌ها:", error);
@@ -451,13 +443,12 @@
           '<tr><td colspan="3" class="text-center p-4">در حال بارگذاری...</td></tr>';
 
         try {
-          const snapshot = await db
-            .collection("topPlayers")
-            .orderBy("total", "desc")
-            .limit(3)
-            .get();
+          const query = new Parse.Query('topPlayers');
+          query.descending('total');
+          query.limit(3);
+          const results = await query.find();
 
-          if (snapshot.empty) {
+          if (results.length === 0) {
             tbody.innerHTML =
               '<tr><td colspan="3" class="text-center p-4 text-gray-500">داده‌ای وجود ندارد</td></tr>';
             return;
@@ -465,15 +456,15 @@
 
           tbody.innerHTML = "";
           let rank = 1;
-          snapshot.forEach((doc) => {
-            const data = doc.data();
+          results.forEach((result) => {
+            const data = result.toJSON();
             tbody.innerHTML += `
-            <tr class="hover:bg-purple-50">
-              <td class="py-2 px-4">${rank++}</td>
-              <td class="py-2 px-4">${data.name}</td>
-              <td class="py-2 px-4">${data.total}</td>
-            </tr>
-          `;
+              <tr class="hover:bg-purple-50">
+                <td class="py-2 px-4">${rank++}</td>
+                <td class="py-2 px-4">${data.name}</td>
+                <td class="py-2 px-4">${data.total}</td>
+              </tr>
+            `;
           });
         } catch (error) {
           console.error("خطا در لود داده‌ها:", error);
@@ -489,31 +480,29 @@
           '<p class="text-center p-4">در حال بارگذاری...</p>';
 
         try {
-          const snapshot = await db
-            .collection("winners")
-            .orderBy("date", "desc")
-            .limit(1)
-            .get();
+          const query = new Parse.Query('winners');
+          query.descending('date');
+          query.limit(1);
+          const results = await query.find();
 
-          if (snapshot.empty) {
+          if (results.length === 0) {
             winnerDiv.innerHTML =
               '<p class="text-center p-4 text-gray-500">برنده‌ای ثبت نشده است</p>';
             return;
           }
 
-          const doc = snapshot.docs[0];
-          const data = doc.data();
+          const data = results[0].toJSON();
           winnerDiv.innerHTML = `
-          <h3 class="text-2xl font-bold text-yellow-600 mb-3">برنده دوئل هفته</h3>
-          <div class="flex flex-col md:flex-row items-center justify-center gap-6">
-            <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=${data.name}" alt="Winner Avatar" class="w-24 h-24 rounded-full shadow-md border-2 border-yellow-300">
-            <div>
-              <p class="text-lg font-semibold text-gray-700">کاربر: <span class="text-yellow-700">${data.name}</span></p>
-              <p class="text-gray-600">امتیاز کل: <span class="font-bold">${data.tokens}</span> | توضیحات: <span class="font-bold">${data.description}</span></p>
-              <p class="text-sm text-gray-500 mt-1">برنده دوئل لایو یوتیوب</p>
+            <h3 class="text-2xl font-bold text-yellow-600 mb-3">برنده دوئل هفته</h3>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+              <img src="https://api.dicebear.com/7.x/thumbs/svg?seed=${data.name}" alt="Winner Avatar" class="w-24 h-24 rounded-full shadow-md border-2 border-yellow-300">
+              <div>
+                <p class="text-lg font-semibold text-gray-700">کاربر: <span class="text-yellow-700">${data.name}</span></p>
+                <p class="text-gray-600">امتیاز کل: <span class="font-bold">${data.tokens}</span> | توضیحات: <span class="font-bold">${data.description}</span></p>
+                <p class="text-sm text-gray-500 mt-1">برنده دوئل لایو یوتیوب</p>
+              </div>
             </div>
-          </div>
-        `;
+          `;
         } catch (error) {
           console.error("خطا در لود برنده:", error);
           winnerDiv.innerHTML =
@@ -527,31 +516,30 @@
         newsDiv.innerHTML = '<p class="text-center p-4">در حال بارگذاری...</p>';
 
         try {
-          const snapshot = await db
-            .collection("news")
-            .orderBy("createdAt", "desc") // تغییر از 'date' به 'createdAt'
-            .limit(2)
-            .get();
+          const query = new Parse.Query('news');
+          query.descending('createdA');
+          query.limit(2);
+          const results = await query.find();
 
-          if (snapshot.empty) {
+          if (results.length === 0) {
             newsDiv.innerHTML =
               '<p class="text-center p-4 text-gray-500">خبری وجود ندارد</p>';
             return;
           }
 
           newsDiv.innerHTML = "";
-          snapshot.forEach((doc) => {
-            const data = doc.data();
+          results.forEach((result) => {
+            const data = result.toJSON();
             const shortContent =
               data.content.length > 100
                 ? data.content.substring(0, 100) + "..."
                 : data.content;
             newsDiv.innerHTML += `
-        <div class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition">
-          <h3 class="font-bold text-lg text-blue-700">${data.title}</h3>
-          <p class="text-sm text-gray-600 mt-2">${shortContent}</p>
-        </div>
-      `;
+              <div class="bg-white rounded-lg shadow p-4 hover:shadow-lg transition">
+                <h3 class="font-bold text-lg text-blue-700">${data.title}</h3>
+                <p class="text-sm text-gray-600 mt-2">${shortContent}</p>
+              </div>
+            `;
           });
         } catch (error) {
           console.error("خطا در لود اخبار:", error);
@@ -559,6 +547,7 @@
             '<p class="text-center p-4 text-red-500">خطا در بارگذاری</p>';
         }
       }
+
       // لود همه داده‌ها هنگام بارگذاری صفحه
       window.onload = () => {
         loadTopTokens();

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ورود - بانک ماریا</title>
   <link rel="stylesheet" href="../style/output.css" />
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Parse SDK برای Back4App -->
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
   <div class="container mx-auto px-4 py-8">
@@ -31,40 +31,31 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-      authDomain: "rxotoken-27656.firebaseapp.com",
-      projectId: "rxotoken-27656",
-      storageBucket: "rxotoken-27656.appspot.com",
-      messagingSenderId: "784349399123",
-      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // مقداردهی اولیه Back4App
+    Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); 
+    Parse.serverURL = 'https://parseapi.back4app.com/';
 
     document.getElementById('login-form').onsubmit = async (e) => {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      // ساخت ایمیل مصنوعی همانند ثبت نام
+      // ساخت ایمیل مصنوعی همانند ثبت‌نام
       const email = `${username}@rxotoken.com`;
 
       try {
-        // ورود با ایمیل و پسورد
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        // ورود با Back4App
+        const user = await Parse.User.logIn(email, password);
 
         // ذخیره آیدی کاربر برای دسترسی بعدی
-        localStorage.setItem('userId', user.uid);
+        localStorage.setItem('userId', user.id);
 
         alert('ورود با موفقیت انجام شد!');
         window.location.href = './user-panel.html';
       } catch (error) {
         console.error('خطا در ورود:', error);
         let errorMessage = 'نام کاربری یا رمز عبور اشتباه است.';
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        if (error.code === 101) { // کد خطای Back4App برای ورود ناموفق
           errorMessage = 'نام کاربری یا رمز عبور اشتباه است.';
         } else {
           errorMessage = error.message;

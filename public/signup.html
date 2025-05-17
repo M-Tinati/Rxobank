@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ثبت‌نام - بانک ماریا</title>
   <link rel="stylesheet" href="../style/output.css" />
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Parse SDK برای Back4App -->
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
   <div class="container mx-auto px-4 py-8">
@@ -32,19 +32,9 @@
   </div>
 
   <script>
-    // پیکربندی Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-      authDomain: "rxotoken-27656.firebaseapp.com",
-      projectId: "rxotoken-27656",
-      storageBucket: "rxotoken-27656.appspot.com",
-      messagingSenderId: "784349399123",
-      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // مقداردهی اولیه Back4App
+    Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); 
+    Parse.serverURL = 'https://parseapi.back4app.com/';
 
     // فرم ثبت‌نام
     document.getElementById('signup-form').onsubmit = async (e) => {
@@ -65,49 +55,53 @@
 
       try {
         // بررسی تکراری نبودن نام کاربری
-        const existing = await db.collection('users').where('username', '==', username).get();
-        if (!existing.empty) {
+        const query = new Parse.Query('users');
+        query.equalTo('username', username);
+        const existing = await query.first();
+        if (existing) {
           errorMsg.textContent = 'این نام کاربری قبلاً ثبت شده است!';
           errorMsg.classList.remove('hidden');
           return;
         }
 
         // ایجاد حساب کاربری
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        const user = new Parse.User();
+        user.set('username', email); // Back4App از email به‌عنوان username استفاده می‌کنه
+        user.set('email', email);
+        user.set('password', password);
+        await user.signUp();
 
-        // همگام‌سازی توکن برای اطمینان از شناخته شدن auth در Firestore
-        await user.getIdToken(true);
+        // ساخت سند در کلاس users
+        const UserClass = Parse.Object.extend('users');
+        const newUser = new UserClass();
+        newUser.set('username', username);
+        newUser.set('email', email);
+        newUser.set('kills', 0);
+        newUser.set('tokens', 0);
+        newUser.set('level', 'Bronze');
+        newUser.set('createdAt', new Date());
+        newUser.set('userId', user.id); // لینک به کاربر در _User
+        await newUser.save();
 
-        // ساخت سند در Firestore
-        await db.collection('users').doc(user.uid).set({
-          username: username,
-          email: email,
-          kills: 0,
-          tokens: 0,
-          level: 'Bronze',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // ذخیره UID و هدایت به پنل
-        localStorage.setItem('userId', user.uid);
+        // ذخیره ID و هدایت به پنل
+        localStorage.setItem('userId', user.id);
         alert('ثبت‌نام با موفقیت انجام شد!');
         window.location.href = './user-panel.html';
 
       } catch (error) {
-        console.error(error);
+        console.error('خطا در ثبت‌نام:', error);
         let msg = 'خطا در ثبت‌نام: ';
         switch (error.code) {
-          case 'auth/email-already-in-use':
+          case 202: // username/email already taken
             msg += 'این نام کاربری قبلاً ثبت شده است.';
             break;
-          case 'auth/invalid-email':
+          case 203: // invalid email
             msg += 'نام کاربری نامعتبر است.';
             break;
-          case 'auth/weak-password':
+          case 125: // weak password
             msg += 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
             break;
-          case 'firestore/permission-denied':
+          case 141: // permission denied
             msg += 'اجازه نوشتن در پایگاه داده ندارید.';
             break;
           default:

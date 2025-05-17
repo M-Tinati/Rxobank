@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ورود ادمین - بانک ماریا</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <!-- Parse SDK برای Back4App -->
+  <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center">
   <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-sm text-center">
@@ -37,20 +38,9 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQfEH_qkPmX1oo7QM7soh9dqoAXiVrHCQ",
-      authDomain: "rxotoken-27656.firebaseapp.com",
-      projectId: "rxotoken-27656",
-      storageBucket: "rxotoken-27656.appspot.com",
-      messagingSenderId: "784349399123",
-      appId: "1:784349399123:web:abcdef1234567890abcdef1234"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    // تنظیم پایداری احراز هویت به local برای ماندگاری ورود
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    // مقداردهی اولیه Back4App
+    Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); 
+    Parse.serverURL = 'https://parseapi.back4app.com';
 
     document.getElementById('admin-login-form').onsubmit = async (e) => {
       e.preventDefault();
@@ -59,13 +49,13 @@
       const errorMsg = document.getElementById('error');
 
       try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        // ورود با Back4App
+        const user = await Parse.User.logIn(email, password);
 
         // چک کردن ایمیل ادمین
-        if (email.toLowerCase() !== "admin@gmail.com") {
-          await auth.signOut();
-          errorMsg.textContent = "شما مجاز به ورود به‌عنوان ادمین نیستید!";
+        if (email.toLowerCase() !== 'admin@gmail.com') {
+          await Parse.User.logOut();
+          errorMsg.textContent = 'شما مجاز به ورود به‌عنوان ادمین نیستید!';
           errorMsg.classList.remove('hidden');
           return;
         }

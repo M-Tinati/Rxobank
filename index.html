@@ -408,7 +408,7 @@
         try {
           const query = new Parse.Query('topPlayers');
           query.descending('tokens');
-          query.limit(3);
+          query.limit(6);
           const results = await query.find();
 
           if (results.length === 0) {
@@ -445,7 +445,7 @@
         try {
           const query = new Parse.Query('topPlayers');
           query.descending('total');
-          query.limit(3);
+          query.limit(6);
           const results = await query.find();
 
           if (results.length === 0) {

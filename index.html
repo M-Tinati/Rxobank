@@ -13,6 +13,53 @@
     <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/parse/dist/parse.min.js"></script>
     <title>بانک مرکزی ماریا</title>
+      <style>
+    body {
+      direction: rtl;
+      font-family: 'Inter', sans-serif;
+      background-color: #131722;
+      color: #d1d4dc;
+      margin: 0;
+      padding: 0;
+    }
+    #chart-container {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: #1e222d;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      padding: 10px;
+    }
+    canvas {
+      width: 100% !important;
+      display: block;
+    }
+    #info {
+      font-family: monospace;
+      font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+      color: #d1d4dc;
+      padding: 0 10px;
+    }
+    @media (max-width: 768px) {
+      #chart-container {
+        padding: 5px;
+      }
+      canvas {
+        height: 400px !important;
+      }
+    }
+    @media (max-width: 480px) {
+      canvas {
+        height: 300px !important;
+      }
+      #info {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
   </head>
   <body>
     <!-- بخش‌های HTML بدون تغییر باقی می‌مانند -->
@@ -109,7 +156,13 @@
         </div>
       </div>
     </section>
-
+<div class="min-h-screen flex flex-col items-center py-4">
+  <h1 class="text-xl md:text-2xl font-bold text-center mb-4">📈 نمودار قیمتی توکن RXO</h1>
+  <div id="info" class="mb-2 text-sm"></div>
+  <div id="chart-container">
+    <canvas id="chart"></canvas>
+  </div>
+</div>
     <section class="container mx-auto px-4 py-10">
       <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">
         برترین بازیکنان این هفته
@@ -395,6 +448,228 @@
     </footer>
 
     <script>
+const canvas = document.getElementById('chart');
+const ctx = canvas.getContext('2d');
+const infoBox = document.getElementById('info');
+
+let WIDTH = canvas.offsetWidth;
+let HEIGHT = window.innerWidth <= 480 ? 300 : window.innerWidth <= 768 ? 400 : 600;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
+let CANDLE_WIDTH = window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 14 : 18;
+const NUM_GRID_LINES = 8;
+let NUM_CANDLES = Math.floor((WIDTH - 40) / (CANDLE_WIDTH + 4));
+let allCandles = [];
+let candles = [];
+let viewStartIndex = 0;
+let lastClose = 30000;
+let visibleMin = 10000;
+let visibleMax = 120000;
+
+function generateCandle(prevClose) {
+  const open = prevClose;
+  const delta = Math.random() * 3000 - 1500;
+  const close = Math.max(1000, open + delta);
+  const high = Math.max(open, close) + Math.random() * 1000;
+  const low = Math.min(open, close) - Math.random() * 1000;
+  return { open, high, low, close, time: new Date() };
+}
+
+function updateVisibleRange() {
+  const prices = candles.flatMap(c => [c.open, c.close, c.high, c.low]);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const padding = (max - min) * 0.15;
+  visibleMin = min - padding;
+  visibleMax = max + padding;
+}
+
+function drawGrid() {
+  ctx.strokeStyle = '#2a2e39';
+  ctx.lineWidth = 1;
+  const step = HEIGHT / NUM_GRID_LINES;
+  for (let i = 0; i <= NUM_GRID_LINES; i++) {
+    const y = i * step;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(WIDTH, y);
+    ctx.stroke();
+
+    const price = visibleMax - ((visibleMax - visibleMin) / NUM_GRID_LINES) * i;
+    ctx.fillStyle = '#d1d4dc';
+    ctx.font = `clamp(14px, 2vw, 16px) monospace`;
+    ctx.fillText(price.toFixed(0) + ' تومان', 20, y - 10); // تغییر مختصات x از 5 به 20
+  }
+}
+
+function drawXAxis() {
+  ctx.fillStyle = '#d1d4dc';
+  ctx.font = `clamp(12px, 1.8vw, 14px) monospace`;
+  const step = Math.floor(NUM_CANDLES / 5);
+  for (let i = 0; i < NUM_CANDLES; i += step) {
+    const candle = candles[i];
+    if (!candle) continue;
+    const x = 20 + i * (CANDLE_WIDTH + 4);
+    const time = candle.time;
+    const timeString = `${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`;
+    ctx.fillText(timeString, x, HEIGHT - 10);
+  }
+}
+
+function drawLastPrice() {
+  if (candles.length === 0) return;
+  const lastCandle = candles[candles.length - 1];
+  const price = lastCandle.close;
+  const y = HEIGHT - (price - visibleMin) * (HEIGHT / (visibleMax - visibleMin));
+  const x = 20 + (candles.length - 1) * (CANDLE_WIDTH + 4);
+
+  ctx.fillStyle = '#2962ff';
+  ctx.fillRect(x + CANDLE_WIDTH + 5, y - 14, 100, 28);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `clamp(16px, 2.5vw, 25px) monospace`;
+  ctx.fillText(price.toFixed(0) + ' تومان', x + CANDLE_WIDTH + 10, y + 6);
+}
+
+function drawCrosshair(x, y) {
+  if (x < 20 || x > WIDTH || y < 0 || y > HEIGHT) return;
+
+  ctx.strokeStyle = '#787b86';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(x, 0);
+  ctx.lineTo(x, HEIGHT);
+  ctx.moveTo(0, y);
+  ctx.lineTo(WIDTH, y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const price = visibleMax - (y / HEIGHT) * (visibleMax - visibleMin);
+  const candleIndex = Math.floor((x - 20) / (CANDLE_WIDTH + 4));
+  const candle = candles[candleIndex];
+  if (!candle) return;
+  const timeString = `${candle.time.getHours()}:${candle.time.getMinutes().toString().padStart(2, '0')}`;
+
+  ctx.fillStyle = '#2962ff';
+  ctx.fillRect(WIDTH - 100, y - 14, 100, 28);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `clamp(16px, 2.5vw, 18px) monospace`;
+  ctx.fillText(price.toFixed(0) + ' تومان', WIDTH - 95, y + 6);
+
+  ctx.fillStyle = '#2962ff';
+  ctx.fillRect(x - 30, HEIGHT - 24, 60, 24);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `clamp(12px, 1.8vw, 14px) monospace`;
+  ctx.fillText(timeString, x - 25, HEIGHT - 8);
+}
+
+function drawCandles() {
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+  updateVisibleRange();
+  drawGrid();
+  drawXAxis();
+
+  const priceRange = visibleMax - visibleMin;
+  const scaleY = HEIGHT / priceRange;
+  const offsetX = 20;
+
+  candles.forEach((candle, i) => {
+    const x = offsetX + i * (CANDLE_WIDTH + 4);
+    const yHigh = HEIGHT - (candle.high - visibleMin) * scaleY;
+    const yLow = HEIGHT - (candle.low - visibleMin) * scaleY;
+    const yOpen = HEIGHT - (candle.open - visibleMin) * scaleY;
+    const yClose = HEIGHT - (candle.close - visibleMin) * scaleY;
+
+    const color = candle.close >= candle.open ? '#26a69a' : '#ef5350';
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+    ctx.moveTo(x + CANDLE_WIDTH / 2, yHigh);
+    ctx.lineTo(x + CANDLE_WIDTH / 2, yLow);
+    ctx.stroke();
+
+    const bodyHeight = Math.max(Math.abs(yClose - yOpen), 1);
+    const bodyY = Math.min(yClose, yOpen);
+    ctx.fillRect(x, bodyY, CANDLE_WIDTH, bodyHeight);
+  });
+
+  drawLastPrice();
+}
+
+function updateInfo(candle) {
+  const t = candle.time;
+  const timeString = `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}:${t.getSeconds().toString().padStart(2, '0')}`;
+  infoBox.textContent = `⏱ زمان: ${timeString} | 🟢 اخرین قیمت: ${Math.round(candle.open)} خرید | 🔺 بالا: ${Math.round(candle.high)} تومان | 🔻 فروش: ${Math.round(candle.low)} تومان | 🔴 بسته: ${Math.round(candle.close)} تومان`;
+}
+
+function addNewCandle() {
+  const newCandle = generateCandle(lastClose);
+  allCandles.push(newCandle);
+  lastClose = newCandle.close;
+  if (allCandles.length > viewStartIndex + NUM_CANDLES) {
+    viewStartIndex++;
+  }
+  candles = allCandles.slice(viewStartIndex, viewStartIndex + NUM_CANDLES);
+  drawCandles();
+  updateInfo(newCandle);
+}
+
+function handleResize() {
+  WIDTH = canvas.offsetWidth;
+  HEIGHT = window.innerWidth <= 480 ? 300 : window.innerWidth <= 768 ? 400 : 600;
+  CANDLE_WIDTH = window.innerWidth <= 480 ? 10 : window.innerWidth <= 768 ? 14 : 18;
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
+  NUM_CANDLES = Math.floor((WIDTH - 40) / (CANDLE_WIDTH + 4));
+  candles = allCandles.slice(viewStartIndex, viewStartIndex + NUM_CANDLES);
+  drawCandles();
+}
+
+function handleScroll(event) {
+  event.preventDefault();
+  viewStartIndex = Math.max(0, viewStartIndex + Math.round(event.deltaY / 100));
+  candles = allCandles.slice(viewStartIndex, viewStartIndex + NUM_CANDLES);
+  drawCandles();
+}
+
+window.addEventListener('resize', handleResize);
+canvas.addEventListener('wheel', handleScroll);
+canvas.addEventListener('mousemove', (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  drawCandles();
+  drawCrosshair(x, y);
+});
+canvas.addEventListener('mouseleave', drawCandles);
+
+// پشتیبانی از لمس برای موبایل و تبلت
+let touchStartX = 0;
+canvas.addEventListener('touchstart', (event) => {
+  touchStartX = event.touches[0].clientX;
+});
+canvas.addEventListener('touchmove', (event) => {
+  event.preventDefault();
+  const touchX = event.touches[0].clientX;
+  const deltaX = touchX - touchStartX;
+  viewStartIndex = Math.max(0, viewStartIndex - Math.round(deltaX / 20));
+  candles = allCandles.slice(viewStartIndex, viewStartIndex + NUM_CANDLES);
+  drawCandles();
+  touchStartX = touchX;
+});
+
+for (let i = 0; i < NUM_CANDLES; i++) {
+  const c = generateCandle(lastClose);
+  allCandles.push(c);
+  lastClose = c.close;
+}
+candles = allCandles.slice(0, NUM_CANDLES);
+
+setInterval(addNewCandle, 1000);
+handleResize();
+drawCandles();
       // مقداردهی اولیه Back4App (جایگزین Firebase)
       Parse.initialize('0eLB6FnpA8dXP0iRmwp3DDITXiOwtssSiAYdYYWz', 'pNYu0vC8JD68wxrJjS4lKwvOVELbPOY3jlx4N8iP'); // کلیدها را از داشبورد Back4App وارد کنید
       Parse.serverURL = 'https://parseapi.back4app.com/';

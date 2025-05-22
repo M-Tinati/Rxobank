@@ -154,7 +154,7 @@
         </div>
       </div>
     </section>
-<div class="min-h-screen flex flex-col items-center py-4">
+<div class="flex flex-col items-center py-4">
   <h1 class="text-xl md:text-2xl font-bold text-center mb-4">📈 نمودار قیمتی توکن RXO</h1>
   <div id="info" class="mb-2 text-sm"></div>
   <div id="chart-container">
@@ -599,7 +599,7 @@ function drawCandles() {
 function updateInfo(candle) {
   const t = candle.time;
   const timeString = `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}:${t.getSeconds().toString().padStart(2, '0')}`;
-  infoBox.textContent = `⏱ زمان: ${timeString} | 🟢 اخرین قیمت: ${Math.round(candle.open)} خرید | 🔺 بالا: ${Math.round(candle.high)} تومان | 🔻 فروش: ${Math.round(candle.low)} تومان | 🔴 بسته: ${Math.round(candle.close)} تومان`;
+  infoBox.textContent = `⏱ زمان: ${timeString} | 🟢  اخرین قیمت لحظه ای: ${Math.round(candle.open)}  | 🔺 خرید: ${Math.round(candle.high)}فروش | 🔻 : ${Math.round(candle.low)} تومان | 🔴 بسته: ${Math.round(candle.close)} تومان`;
 }
 
 function addNewCandle() {
